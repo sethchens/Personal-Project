@@ -1,22 +1,26 @@
 using System;
+using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace bikeDatabaseLibrary;
 
 public class QueryConstructor
 {
-    private readonly var _database = "bike";
+    private string _database { get; set; }
     public string _column { get; set; }
     public string _searchTerm { get; set; }
-    private var _query = $"SELECT * FROM {_database} WHERE {_column} LIKE {_searchTerm}";
+    private string _query;
 
     public string query
     {
         get { return _query; }
     }
-    public QueryConstructor(string column, string searchTerm)
+    public QueryConstructor(string database, string column, string searchTerm)
     {
         // To have the user input passed in and construct a query
+        _database = database;
         _column = column;
-        _searchTerm = $"'%{searchTerm}%'";
+        _searchTerm = searchTerm;
+        _query = $"SELECT * FROM {_database} WHERE {_column} LIKE '%{_searchTerm}%'";
     }
 }
