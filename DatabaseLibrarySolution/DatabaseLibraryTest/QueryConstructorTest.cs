@@ -12,9 +12,10 @@ public class QueryConstructorTest
     public void TruthyQueryTest(string table, string column, string? condition, string searchTerm, int expected)
     {
         // Scenario: When I do various kind of query, does it give me the correct number of rows of data?
-        // Act
+        // Arrange
         var queryConstructor = new QueryConstructor(table, column, condition, searchTerm);
         var testQuery = $"SELECT {column} FROM {table} WHERE {condition} LIKE '%{searchTerm}%'";
+        var count = 0;
         if (searchTerm == "")
         { 
 	        testQuery = $"SELECT {column} FROM {table}";
@@ -27,8 +28,7 @@ public class QueryConstructorTest
 	        }
         }
 
-        // Assert
-        Assert.Equal(testQuery, queryConstructor.query);
+        // Act
         var connectionString = $"Server=localhost;Database=bike;User=root;Password=bryan30508;";
 				using (MySqlConnection connection = new MySqlConnection(connectionString))
 				{
@@ -37,18 +37,20 @@ public class QueryConstructorTest
 					{
 						using (MySqlDataReader reader = command.ExecuteReader())
 						{
-								var count = 0;
 								while (reader.Read())
 								{
 									count += 1;
 								}
-								Assert.Equal(expected, count);
 						}
 					}
 					connection.Close();
 				}
 				
-				//Defects found: John returns 2 rows of data -> Was intended to use "KuanYu" as searchTerm -> None
+	    // Assert
+	    Assert.Equal(expected, count);
+	    Assert.Equal(testQuery, queryConstructor.query);
+				
+	    //Defects found: John returns 2 rows of data -> Was intended to use "KuanYu" as searchTerm -> None
     }
     
     [Theory]
@@ -57,7 +59,8 @@ public class QueryConstructorTest
     public void FalsyQueryTest(string table, string column, string? condition, string searchTerm, bool expected)
     {
 	    // Scenario: When I do various kind of query, does it give me the correct number of rows of data?
-	    // Act
+	    // Arrange
+	    var isFalsy = false;
 	    var queryConstructor = new QueryConstructor(table, column, condition, searchTerm);
 	    var testQuery = $"SELECT {column} FROM {table} WHERE {condition} LIKE '%{searchTerm}%'";
 	    if (searchTerm == "")
@@ -72,10 +75,7 @@ public class QueryConstructorTest
 		    }
 	    }
 
-	    var isFalsy = false;
-
-	    // Assert
-	    Assert.Equal(testQuery, queryConstructor.query);
+	    // Act
 	    var connectionString = $"Server=localhost;Database=bike;User=root;Password=bryan30508;";
 	    using (MySqlConnection connection = new MySqlConnection(connectionString))
 	    {
@@ -91,8 +91,6 @@ public class QueryConstructorTest
 						    // Here is to test when it returns null
 						    isFalsy = true;
 					    }
-
-					    Assert.Equal(expected, isFalsy);
 				    }
 			    }
 			    connection.Close();
@@ -103,6 +101,12 @@ public class QueryConstructorTest
 			    isFalsy = true;
 		    }
 	    }
+	    
+	    // Assert
+	    Assert.Equal(testQuery, queryConstructor.query);
+	    Assert.Equal(expected, isFalsy);
+	    
+	    // Defects found: None
 
     }
 }
