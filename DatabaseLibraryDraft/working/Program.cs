@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Data;
 using MySql.Data.MySqlClient;
 
@@ -64,30 +65,40 @@ public class Program {
 				var queryConstructor = new QueryConstructor(table, column, condition, searchTerm);
 				using (MySqlCommand command = new MySqlCommand(queryConstructor.query, connection))
 				{
+					// Instanciate dataConstructor and write result as a text file
+					var dataRenderer = new DataRenderer();
 					using (MySqlDataReader reader = command.ExecuteReader())
 					{
 						Console.Clear();
-						Console.WriteLine(queryConstructor.query);
-						var count = 0;
-						while (reader.Read())
+						if (File.Exists(dataRenderer._path))
 						{
-							Console.WriteLine("-------------------------");
-							count += 1;
-							for (int i = 0; i < reader.FieldCount; i++)
+							dataRenderer._lines.Add(queryConstructor.query);
+							var count = 0;
+							while (reader.Read())
 							{
-								if (!reader.IsDBNull(i))
+								dataRenderer._lines.Add("-------------------------");
+								count += 1;
+								for (int i = 0; i < reader.FieldCount; i++)
 								{
-									string columnValue = reader.GetString(i);
-									Console.WriteLine(columnValue);
-								}
-								else
-								{
-									Console.WriteLine("Null");
+									if (!reader.IsDBNull(i))
+									{
+										string columnValue = reader.GetString(i);
+										dataRenderer._lines.Add(columnValue);
+									}
+									else
+									{
+										dataRenderer._lines.Add("Null");
+									}
 								}
 							}
-						}
 
-						Console.WriteLine($"Total: {count}");
+							dataRenderer._lines.Add($"Total: {count}");
+							dataRenderer.construct();
+						}
+						else
+						{
+							Console.WriteLine("File");
+						}
 					}
 				}
 				Console.WriteLine("Hit enter to keep searching or type something to quit");
